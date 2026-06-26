@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https://mempool.space; img-src 'self' data:; style-src 'self' 'unsafe-inline'; base-uri 'none'; object-src 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <title>silentpay.me</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%AB%3C/text%3E%3C/svg%3E" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      color: #171717;
+      background: #f7f7f4;
+      line-height: 1.45;
+    }
+    main {
+      width: min(860px, 100%);
+      margin: 0 auto;
+      padding: 20px 14px 40px;
+    }
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #202020;
+      padding-bottom: 12px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0;
+    }
+    .tagline {
+      margin-top: 4px;
+      color: #4f5d5f;
+      font-size: 0.86rem;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    a { color: #075c78; }
+    .warning {
+      border: 1px solid #c28b00;
+      background: #fff7df;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 0.86rem;
+      width: 100%;
+      overflow-wrap: anywhere;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 14px;
+      align-items: start;
+    }
+    section {
+      border-top: 1px solid #d6d3ca;
+      padding: 14px 0;
+    }
+    .label {
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      color: #6b6b64;
+      margin-bottom: 7px;
+    }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #b8b8b0;
+      background: #fff;
+      color: #171717;
+      padding: 9px 10px;
+      font: inherit;
+      font-size: 0.82rem;
+    }
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+      word-break: break-all;
+    }
+    input:disabled, textarea:disabled, select:disabled {
+      background: #ecece6;
+      color: #777;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .row > * { flex: 1 1 auto; }
+    .row > button { flex: 0 0 auto; }
+    #custom-fee-rate { display: block; }
+    .fee-controls:not(:has(#fee-target option[value="custom"]:checked)) #custom-fee-rate {
+      display: none;
+    }
+    button {
+      border: 1px solid #202020;
+      background: #fff;
+      color: #171717;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+    button:hover:not(:disabled) { background: #efefea; }
+    button:disabled { opacity: 0.45; cursor: default; }
+    button.primary {
+      background: #202020;
+      color: #fff;
+    }
+    button.primary:hover:not(:disabled) { background: #3b3b36; }
+    button.danger {
+      border-color: #a43d25;
+      color: #a43d25;
+    }
+    .status {
+      min-height: 44px;
+      border: 1px solid #cbc8bf;
+      background: #fff;
+      padding: 10px 12px;
+      font-size: 0.86rem;
+      word-break: break-word;
+    }
+    .status:empty::after {
+      content: "Ready";
+      color: #8a8a82;
+    }
+    .backup-reminder {
+      border: 1px solid #075c78;
+      background: #eef8fb;
+      padding: 12px;
+      margin: 14px 0;
+      font-size: 0.82rem;
+      overflow-wrap: anywhere;
+    }
+    .backup-reminder p {
+      margin: 0 0 8px;
+    }
+    .backup-reminder textarea {
+      min-height: 72px;
+      margin-top: 8px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .step {
+      min-height: 34px;
+      border-bottom: 3px solid #d5d2c8;
+      color: #7a7a72;
+      font-size: 0.68rem;
+      text-align: center;
+      padding: 4px 2px 6px;
+      overflow-wrap: anywhere;
+    }
+    .step.done { border-color: #20704d; color: #1c5b41; }
+    .step.current { border-color: #075c78; color: #063f52; font-weight: 700; }
+    .step.failed { border-color: #a43d25; color: #a43d25; font-weight: 700; }
+    .details {
+      font-size: 0.82rem;
+      word-break: break-word;
+    }
+    .details dl {
+      display: grid;
+      grid-template-columns: 128px minmax(0, 1fr);
+      gap: 5px 10px;
+      margin: 0;
+    }
+    .details dt { color: #6b6b64; }
+    .details dd { margin: 0; min-width: 0; }
+    .qr-panel {
+      border: 1px solid #d6d3ca;
+      background: #fff;
+      padding: 12px;
+      min-height: 326px;
+    }
+    #qr {
+      width: 256px;
+      min-height: 256px;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8a8a82;
+      text-align: center;
+      font-size: 0.82rem;
+    }
+    #qr svg {
+      width: 256px;
+      height: 256px;
+      display: block;
+    }
+    #qr img {
+      width: 256px;
+      height: 256px;
+      display: block;
+    }
+    .mono-box {
+      border: 1px solid #d6d3ca;
+      background: #fff;
+      padding: 8px;
+      font-size: 0.76rem;
+      word-break: break-all;
+      min-height: 38px;
+    }
+    details {
+      border-top: 1px solid #d6d3ca;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    summary { cursor: pointer; }
+    .recovery-note, .guide-note {
+      color: #4f5d5f;
+      font-size: 0.78rem;
+      margin-top: 8px;
+      overflow-wrap: anywhere;
+    }
+    .guide {
+      font-size: 0.82rem;
+    }
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 10px;
+    }
+    .guide ol {
+      margin: 0;
+      padding-left: 22px;
+    }
+    .guide li + li { margin-top: 6px; }
+    .snapshot-wif {
+      margin-bottom: 12px;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .guide-grid { grid-template-columns: 1fr; }
+      header { display: block; }
+      .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .details dl { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>silentpay.me</h1>
+        <div class="tagline">Staging address in the local browser, sweep to a Bitcoin silent payment address.</div>
+      </div>
+      <a href="https://github.com/stutxo/silentpay.me" target="_blank" rel="noreferrer">GitHub</a>
+    </header>
+
+    <div class="warning">
+      Beta software. The browser generates and stores the private key for the staging address in local storage until the sweep confirms or you reset. Use small amounts only.
+    </div>
+
+    <div class="grid">
+      <div>
+        <section>
+          <div class="label">Silent payment recipient</div>
+          <textarea id="recipient" spellcheck="false" autocomplete="off" placeholder="sp1..."></textarea>
+          <div class="row" style="margin-top:8px">
+            <button id="copy-link" disabled>Copy share URL</button>
+          </div>
+          <div class="label" style="margin-top:10px">Sweep fee</div>
+          <div class="row fee-controls">
+            <select id="fee-target" aria-label="Sweep fee target">
+              <option value="fastest" selected>Next block</option>
+              <option value="half_hour">30 minutes</option>
+              <option value="hour">1 hour</option>
+              <option value="custom">Custom sat/vB</option>
+            </select>
+            <input id="custom-fee-rate" type="number" min="0.1" step="0.1" inputmode="decimal" placeholder="sat/vB" value="0.1" />
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="start" class="primary">Create staging address</button>
+            <button id="reset" class="danger" hidden>Reset</button>
+          </div>
+        </section>
+
+        <section>
+          <div class="label">Progress</div>
+          <div id="steps" class="steps" aria-hidden="true"></div>
+          <div id="status" class="status"></div>
+        </section>
+
+        <section id="backup-reminder" class="backup-reminder" hidden>
+          <div class="label">Backup staging WIF</div>
+          <p>Save this WIF locally before sending funds. It can recover bitcoin still sitting on the staging address if browser storage is lost or the automatic sweep cannot finish.</p>
+          <textarea id="backup-wif" readonly hidden spellcheck="false"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button id="reveal-backup-wif">Reveal WIF</button>
+            <button id="download-backup-wif" hidden>Download backup</button>
+            <button id="copy-backup-wif" hidden>Copy WIF</button>
+            <button id="ack-backup-wif" class="primary" disabled>I saved it locally</button>
+          </div>
+          <div class="recovery-note">Sparrow recovery: open Tools &gt; Sweep Private Key, paste this WIF, set the script type to Native Segwit/P2WPKH, then sweep to your wallet or intended <code>sp1...</code> address.</div>
+        </section>
+
+        <section>
+          <div class="label">Payment details</div>
+          <div id="details" class="details"></div>
+          <details id="raw" hidden>
+            <summary>Raw sweep transaction</summary>
+            <textarea id="rawtx" readonly style="margin-top:8px;min-height:120px"></textarea>
+            <button id="copy-raw" style="margin-top:8px">Copy raw tx</button>
+          </details>
+          <details id="recovery" hidden>
+            <summary>Recovery private key</summary>
+            <button id="reveal-recovery" style="margin-top:8px">Reveal recovery WIF</button>
+            <textarea id="recovery-wif" readonly hidden style="margin-top:8px;min-height:72px"></textarea>
+            <button id="copy-recovery" hidden style="margin-top:8px">Copy recovery WIF</button>
+            <div class="recovery-note">Copy this before resetting the staging payment. Anyone with this WIF can spend funds that remain at the staging address.</div>
+          </details>
+          <details id="snapshot-recovery" hidden>
+            <summary>Stored recovery snapshot</summary>
+            <div id="snapshot-wif-block" class="snapshot-wif" hidden>
+              <div class="label" style="margin-top:8px">Recovered staging WIF</div>
+              <textarea id="snapshot-wif" readonly style="min-height:72px"></textarea>
+              <button id="copy-snapshot-wif" style="margin-top:8px">Copy recovered WIF</button>
+              <div class="recovery-note">This WIF was recovered from the saved browser snapshot even though the full payment state could not be restored.</div>
+            </div>
+            <div class="label" style="margin-top:8px">Raw snapshot</div>
+            <textarea id="snapshot-raw" readonly style="margin-top:8px;min-height:120px"></textarea>
+            <button id="copy-snapshot" style="margin-top:8px">Copy snapshot</button>
+          </details>
+        </section>
+      </div>
+
+      <aside class="qr-panel">
+        <div class="label">Bitcoin staging address</div>
+        <div id="qr">Create a payment to show a QR code.</div>
+        <div id="commit-address" class="mono-box"></div>
+        <div class="row" style="margin-top:8px">
+          <button id="copy-address" disabled>Copy address</button>
+          <button id="retry" disabled>Retry sweep</button>
+        </div>
+      </aside>
+    </div>
+
+    <section class="guide">
+      <details open>
+        <summary>Sparrow wallet and recovery guide</summary>
+        <div class="guide-grid">
+          <div>
+            <div class="label">Create a Sparrow silent-payment wallet</div>
+            <ol>
+              <li>Use Sparrow 2.5.x or newer and connect to a server that supports Silent Payments.</li>
+              <li>Create a new wallet, then set the wallet policy to Silent Payments or choose the Taproot SP wallet type during import.</li>
+              <li>Add your software, hardware, or file keystore, then apply and save the wallet.</li>
+              <li>Open Receive and copy the reusable <code>sp1...</code> silent payment address into this page.</li>
+            </ol>
+          </div>
+          <div>
+            <div class="label">Recover by sweeping the WIF</div>
+            <ol>
+              <li>Copy the recovery WIF shown above for the staging address.</li>
+              <li>In Sparrow, open the wallet you want to recover into, then choose Tools > Sweep Private Key.</li>
+              <li>Paste the WIF and set the private-key script type to Native Segwit/P2WPKH.</li>
+              <li>Sweep to your open Sparrow wallet or paste the intended <code>sp1...</code> address, then review, sign, and broadcast.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="guide-note">Sweeping only recovers bitcoin still sitting on the staging address. If the automatic silent-payment sweep already confirmed, this WIF should have no remaining funds.</div>
+      </details>
+    </section>
+  </main>
+
+  <script type="module" src="./web.js"></script>
+</body>
+</html>

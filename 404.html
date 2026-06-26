@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-5oLx//qk/gBHqvBACCDbGmaujJxaL40rbmDH2pYqJP0=' 'sha256-5Z+SZ8bYVts3NLWaTQvtfoIrpPbCmaVgTTh35lDNsVA=' 'sha256-TSEFosyQdBmZn13PiIYTYe5LbDXPbCZQaJmhsyitEIQ='; connect-src 'self' https://mempool.space; img-src 'self' data:; style-src 'self' 'unsafe-inline'; base-uri 'none'; object-src 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
+  <title>silentpay.me</title>
+  <script>
+    (() => {
+      const recipientRe = /^sp1[023456789acdefghjklmnpqrstuvwxyz]+$/i;
+      let recipient = window.location.pathname.replace(/^\/+|\/+$/g, "");
+      try { recipient = decodeURIComponent(recipient); }
+      catch { recipient = ""; }
+
+      const target = new URL("/", window.location.origin);
+      if (recipientRe.test(recipient)) target.searchParams.set("recipient", recipient);
+      window.location.replace(target);
+    })();
+  </script>
+</head>
+<body>
+  Redirecting...
+</body>
+</html>

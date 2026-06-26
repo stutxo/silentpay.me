@@ -1,0 +1,17 @@
+{
+  "name": "silentpay",
+  "type": "module",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "silentpay_bg.wasm",
+    "silentpay.js",
+    "silentpay.d.ts"
+  ],
+  "main": "silentpay.js",
+  "types": "silentpay.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ],
+  "private": true
+}
